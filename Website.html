@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Datos Interesantes sobre los Gatos 🐱</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    <script src="https://code.iconify.design/3/3.1.0/iconify.min.js"></script>
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --black: #050505;
+            --panel: #1A1A1A;
+            --gold: #D4AF37;
+            --golddim: #8a7122;
+            --border: #2A2A2A;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #000;
+            color: #fff;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        .slide {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transform: translateX(60px);
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            pointer-events: none;
+            padding: 48px;
+        }
+        .slide.active {
+            opacity: 1;
+            transform: translateX(0);
+            pointer-events: auto;
+        }
+        .slide.exit-left {
+            opacity: 0;
+            transform: translateX(-60px);
+        }
+        .slide-inner {
+            width: 100%;
+            max-width: 1100px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--gold), #f5d76e);
+            transition: width 0.4s ease;
+            z-index: 100;
+        }
+        .nav-controls {
+            position: fixed;
+            bottom: 28px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            z-index: 100;
+            background: rgba(26,26,26,0.8);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 50px;
+            padding: 7px 18px;
+        }
+        .nav-btn {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            border: 1px solid var(--border);
+            background: transparent;
+            color: #a3a3a3;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .nav-btn:hover:not(:disabled) {
+            border-color: var(--gold);
+            color: var(--gold);
+            background: rgba(212,175,55,0.08);
+        }
+        .nav-btn:disabled {
+            opacity: 0.2;
+            cursor: default;
+        }
+        .slide-dots { display: flex; gap: 5px; }
+        .dot {
+            width: 7px; height: 7px; border-radius: 50%;
+            background: var(--border);
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        .dot.active {
+            background: var(--gold);
+            width: 22px;
+            border-radius: 4px;
+        }
+        .slide-counter {
+            font-size: 10px; color: #525252;
+            font-weight: 500; min-width: 36px;
+            text-align: center; letter-spacing: 0.05em;
+        }
+        .serif { font-family: 'Playfair Display', serif; }
+        .gold-text { color: var(--gold); }
+        .gold-grad {
+            background: linear-gradient(135deg, #D4AF37, #f5d76e, #D4AF37);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .label {
+            font-size: 10px; font-weight: 600;
+            letter-spacing: 0.25em; text-transform: uppercase;
+            color: rgba(212,175,55,0.6);
+        }
+        .subtitle { color: #a3a3a3; font-weight: 300; line-height: 1.65; }
+        .bg-text { color: #737373; font-weight: 300; }
+        .divider { width: 48px; height: 1px; background: var(--gold); opacity: 0.4; }
+        .fact-card {
+            background: var(--panel);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 4px;
+        }
+        .stat-ring {
+            background: conic-gradient(var(--gold) var(--pct), var(--border) var(--pct));
+            border-radius: 50%; padding: 3px; flex-shrink: 0;
+        }
+        .stat-ring-inner {
+            background: var(--panel); border-radius: 50%;
+            width: 100%; height: 100%;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .mini-bar-track {
+            height: 4px; background: var(--border);
+            border-radius: 2px; overflow: hidden;
+        }
+        .mini-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--gold), #f5d76e);
+            border-radius: 2px;
+        }
+        .breed-chip {
+            background: rgba(5,5,5,0.5);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 4px; padding: 10px 14px;
+            transition: border-color 0.3s;
+        }
+        .breed-chip:hover { border-color: rgba(212,175,55,0.3); }
+        .purr-wave {
+            display: flex; align-items: end; gap: 2px; height: 28px;
+        }
+        .purr-bar {
+            width: 3px; background: var(--gold);
+            border-radius: 2px 2px 0 0;
+            animation: purrAnim 1.2s ease-in-out infinite;
+        }
+        @keyframes purrAnim {
+            0%, 100% { transform: scaleY(0.3); }
+            50% { transform: scaleY(1); }
+        }
+        .bg-radial {
+            background: radial-gradient(ellipse at 50% 30%, rgba(212,175,55,0.06) 0%, transparent 60%), var(--black);
+        }
+        .bg-subtle {
+            background: radial-gradient(ellipse at 80% 60%, rgba(212,175,55,0.03) 0%, transparent 50%), var(--black);
+        }
+        .deco-line {
+            position: absolute; width: 1px; height: 80px;
+            background: linear-gradient(to bottom, rgba(212,175,55,0.15), transparent);
+        }
+        .particle {
+            position: absolute; width: 4px; height: 4px;
+            border-radius: 50%; background: rgba(212,175,55,0.15);
+            animation: floatP 6s ease-in-out infinite;
+        }
+        @keyframes floatP {
+            0%, 100% { transform: translateY(0) translateX(0); }
+            33% { transform: translateY(-12px) translateX(4px); }
+            66% { transform: translateY(6px) translateX(-3px); }
+        }
+        @keyframes heartbeat {
+            0%, 100% { transform: scale(1); }
+            14% { transform: scale(1.2); }
+            28% { transform: scale(1); }
+            42% { transform: scale(1.15); }
+            56% { transform: scale(1); }
+        }
+        .slide-img {
+            border-radius: 4px; object-fit: cover; opacity: 0.75;
+        }
+        .fact-grid {
+            display: grid; grid-template-columns: 1fr 1fr;
+            gap: 36px; align-items: center;
+        }
+        .icon-badge {
+            position: absolute; top: 12px; width: 42px; height: 42px;
+            border-radius: 50%; background: rgba(5,5,5,0.6);
+            backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.1);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .icon-badge.left { left: 12px; }
+        .icon-badge.right { right: 12px; }
+        @media (max-width: 768px) {
+            .slide { padding: 24px; }
+            .fact-grid { grid-template-columns: 1fr !important; }
+            .fact-grid img { height: 200px !important; }
+            .fact-grid .order-flip { order: -1; }
+            .hero-title { font-size: 2.8rem !important; }
+            .summary-grid { grid-template-columns: 1fr !important; }
+            .breed-grid { grid-template-columns: 1fr 1fr !important; }
+        }
+        @media (max-width: 480px) {
+            .hero-title { font-size: 2rem !important; }
+            .breed-grid { grid-template-columns: 1fr !important; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="progress-bar" id="progressBar" style="width: 0%;"></div>
+
+    <div class="slide-container" style="position: relative; width: 100vw; height: 100vh;">
+
+        <!-- ===== SLIDE 1: TITLE ===== -->
+        <div class="slide active bg-radial" data-slide="0">
+            <div class="deco-line" style="top: 20%; left: 10%;"></div>
+            <div class="deco-line" style="top: 20%; right: 10%;"></div>
+            <div class="particle" style="top: 30%; left: 20%;"></div>
+            <div class="particle" style="top: 60%; right: 25%; animation-delay: 2s;"></div>
+
+            <div class="slide-inner" style="text-align: center;">
+                <div class="label" style="margin-bottom: 24px;">Presentación Bilingüe</div>
+                <div style="display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 32px;">
+                    <div class="divider"></div>
+                    <span style="font-size: 2.5rem;">🐱</span>
+                    <div class="divider"></div>
+                </div>
+
+                <h1 class="serif hero-title" style="font-size: 4.5rem; font-weight: 400; line-height: 1.1; letter-spacing: -0.02em; margin-bottom: 12px;">
+                    Datos<br><span class="gold-grad italic">Interesantes</span><br>sobre los Gatos
+                </h1>
+                <p style="color: #525252; font-size: 0.95rem; font-style: italic; margin-bottom: 6px;">
+                    Интересни факти за котките
+                </p>
+                <p class="subtitle" style="font-size: 1rem; max-width: 480px; margin: 0 auto;">
+                    Descubre los secretos más fascinantes de los felinos más adorados del mundo.
+                </p>
+                <p class="bg-text" style="font-size: 0.88rem; max-width: 480px; margin: 4px auto 0;">
+                    Открийте най-увлекателните тайни на най-обичаните котки в света.
+                </p>
+
+                <div style="display: flex; justify-content: center; gap: 48px; margin-top: 52px;">
+                    <div style="text-align: center;">
+                        <div class="serif" style="font-size: 1.8rem;">5</div>
+                        <div style="font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: #525252; margin-top: 2px;">Datos</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div class="serif" style="font-size: 1.8rem;">70+</div>
+                        <div style="font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: #525252; margin-top: 2px;">Razas</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div class="serif" style="font-size: 1.8rem;">180°</div>
+                        <div style="font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: #525252; margin-top: 2px;">Rotación</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div class="serif" style="font-size: 1.8rem;">70%</div>
+                        <div style="font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: #525252; margin-top: 2px;">Sueño</div>
+                    </div>
+                </div>
+                <div style="margin-top: 44px; color: #404040; font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase;">
+                    Usa las flechas ← → para navegar
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== SLIDE 2: SLEEP ===== -->
+        <div class="slide bg-subtle" data-slide="1">
+            <div class="slide-inner">
+                <div class="fact-grid">
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 18px;">
+                            <span class="label" style="background: rgba(212,175,55,0.1); padding: 4px 12px; border-radius: 3px;">Dato 01</span>
+                            <div style="flex: 1; height: 1px; background: var(--border);"></div>
+                        </div>
+                        <h2 class="serif" style="font-size: 1.85rem; line-height: 1.2; margin-bottom: 4px;">
+                            Los gatos duermen el <span class="gold-text">70%</span> de sus vidas.
+                        </h2>
+                        <p style="font-size: 0.78rem; color: #525252; font-style: italic; margin-bottom: 14px;">
+                            Котките спят 70% от живота си.
+                        </p>
+                        <p class="subtitle" style="font-size: 0.85rem; margin-bottom: 18px;">
+                            Un gato de 15 años pasa unos 10,5 años durmiendo. Su naturaleza de cazador les obliga a ahorrar energía en ráfagas cortas, seguidas de largo descanso. Experimentan sueño REM y sueñan con cazar.
+                        </p>
+                        <p class="bg-text" style="font-size: 0.8rem; margin-bottom: 18px;">
+                            Котка на 15 години прекарва около 10,5 години в сън. Природата им на ловци ги кара да пестят енергия на кратки порции, последвани от дълга почивка. Преживяват REM сън и сънуват лов.
+                        </p>
+                        <div style="display: flex; align-items: center; gap: 16px;">
+                            <div class="stat-ring" style="width: 60px; height: 60px; --pct: 70%;">
+                                <div class="stat-ring-inner"><span style="font-size: 12px; font-weight: 600; color: var(--gold);">70%</span></div>
+                            </div>
+                            <div style="font-size: 0.75rem; color: #737373; line-height: 1.6;">
+                                <span style="color: #a3a3a3; font-weight: 500;">13–16 horas</span> al día<br>
+                                vs. <span style="color: #a3a3a3; font-weight: 500;">33%</span> de los humanos
+                            </div>
+                        </div>
+                    </div>
+                    <div style="position: relative;">
+                        <img src="https://picsum.photos/seed/sleeping-cat-cozy/600/480.jpg" alt="Gato durmiendo" class="slide-img" style="width: 100%; height: 360px;">
+                        <div class="icon-badge left">
+                            <span class="iconify" data-icon="lucide:moon" data-width="18" style="color: var(--gold);"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== SLIDE 3: HEART ===== -->
+        <div class="slide bg-radial" data-slide="2">
+            <div class="slide-inner">
+                <div class="fact-grid">
+                    <div style="order: 2;">
+                        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 18px;">
+                            <span class="label" style="background: rgba(212,175,55,0.1); padding: 4px 12px; border-radius: 3px;">Dato 02</span>
+                            <div style="flex: 1; height: 1px; background: var(--border);"></div>
+                        </div>
+                        <h2 class="serif" style="font-size: 1.85rem; line-height: 1.2; margin-bottom: 4px;">
+                            Su corazón late casi <span class="gold-text">el doble</span> que el humano.
+                        </h2>
+                        <p style="font-size: 0.78rem; color: #525252; font-style: italic; margin-bottom: 14px;">
+                            Сърцето им бие почти два пъти по-бързо от човешкото.
+                        </p>
+                        <p class="subtitle" style="font-size: 0.85rem; margin-bottom: 18px;">
+                            Un corazón humano late 60–100 veces/minuto; el de un gato alcanza 110–180. En gatitos puede superar 200. Este ritmo mantiene su alta tasa metabólica y agilidad.
+                        </p>
+                        <p class="bg-text" style="font-size: 0.8rem; margin-bottom: 22px;">
+                            Човешкото сърце бие 60–100 пъти/минута; котешкото достига 110–180. При котенца може да надхвърли 200. Този ритъм поддържа високия им метаболизъм и ловкост.
+                        </p>
+                        <div style="display: flex; flex-direction: column; gap: 9px;">
+                            <div>
+                                <div style="display: flex; justify-content: space-between; font-size: 0.7rem; margin-bottom: 3px;">
+                                    <span style="color: #737373;">Humano / Човек</span><span style="color: #a3a3a3;">60–100 lpm</span>
+                                </div>
+                                <div class="mini-bar-track"><div class="mini-bar-fill" style="width: 40%;"></div></div>
+                            </div>
+                            <div>
+                                <div style="display: flex; justify-content: space-between; font-size: 0.7rem; margin-bottom: 3px;">
+                                    <span style="color: #737373;">Gato / Котка</span><span style="color: var(--gold); font-weight: 500;">110–180 lpm</span>
+                                </div>
+                                <div class="mini-bar-track"><div class="mini-bar-fill" style="width: 85%;"></div></div>
+                            </div>
+                            <div>
+                                <div style="display: flex; justify-content: space-between; font-size: 0.7rem; margin-bottom: 3px;">
+                                    <span style="color: #737373;">Gatito / Котенце</span><span style="color: #a3a3a3;">200+ lpm</span>
+                                </div>
+                                <div class="mini-bar-track"><div class="mini-bar-fill" style="width: 100%;"></div></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="order: 1; position: relative;" class="order-flip">
+                        <img src="https://picsum.photos/seed/cat-closeup-face/600/480.jpg" alt="Rostro de gato" class="slide-img" style="width: 100%; height: 360px;">
+                        <div class="icon-badge right">
+                            <span class="iconify" data-icon="lucide:heart" data-width="18" style="color: var(--gold); animation: heartbeat 1.5s ease-in-out infinite;"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== SLIDE 4: EARS ===== -->
+        <div class="slide bg-subtle" data-slide="3">
+            <div class="slide-inner">
+                <div class="fact-grid">
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 18px;">
+                            <span class="label" style="background: rgba(212,175,55,0.1); padding: 4px 12px; border-radius: 3px;">Dato 03</span>
+                            <div style="flex: 1; height: 1px; background: var(--border);"></div>
+                        </div>
+                        <h2 class="serif" style="font-size: 1.85rem; line-height: 1.2; margin-bottom: 4px;">
+                            Pueden girar las orejas <span class="gold-text">180°</span>.
+                        </h2>
+                        <p style="font-size: 0.78rem; color: #525252; font-style: italic; margin-bottom: 14px;">
+                            Могат да въртят ушите си до 180 градуса.
+                        </p>
+                        <p class="subtitle" style="font-size: 0.85rem; margin-bottom: 18px;">
+                            Controladas por 32 músculos (vs. 6 en humanos), funcionan como antenas independientes. Detectan la dirección de un sonido en menos de 0,01 s. Su rango: 48 Hz–85 kHz, superior al humano y al perro.
+                        </p>
+                        <p class="bg-text" style="font-size: 0.8rem; margin-bottom: 18px;">
+                            Контролирани от 32 мускула (спрямо 6 при хората), функционират като независими антени. Определят посоката на звук за по-малко от 0,01 с. Обхват: 48 Hz–85 kHz, по-добър от човешкия и кучешкия.
+                        </p>
+                        <div style="display: flex; align-items: center; gap: 20px;">
+                            <svg viewBox="0 0 80 80" width="68" height="68" style="flex-shrink: 0;">
+                                <circle cx="40" cy="40" r="34" fill="none" stroke="#2A2A2A" stroke-width="1.5"/>
+                                <path d="M 40 6 A 34 34 0 0 1 74 40" fill="none" stroke="#D4AF37" stroke-width="2.5" stroke-linecap="round"/>
+                                <text x="40" y="44" text-anchor="middle" fill="#D4AF37" font-size="12" font-weight="600" font-family="Inter">180°</text>
+                            </svg>
+                            <div style="font-size: 0.75rem; color: #737373; line-height: 1.6;">
+                                <span style="color: #a3a3a3; font-weight: 500;">32 múскуlos</span> por oreja<br>
+                                Rotación <span style="color: #a3a3a3; font-weight: 500;">independiente</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="position: relative;">
+                        <img src="https://picsum.photos/seed/cat-ears-pointed/600/480.jpg" alt="Orejas de gato" class="slide-img" style="width: 100%; height: 360px;">
+                        <div class="icon-badge left">
+                            <span class="iconify" data-icon="lucide:radio" data-width="18" style="color: var(--gold);"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== SLIDE 5: BREEDS ===== -->
+        <div class="slide bg-radial" data-slide="4">
+            <div class="slide-inner">
+                <div class="fact-grid">
+                    <div style="order: 2;">
+                        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 18px;">
+                            <span class="label" style="background: rgba(212,175,55,0.1); padding: 4px 12px; border-radius: 3px;">Dato 04</span>
+                            <div style="flex: 1; height: 1px; background: var(--border);"></div>
+                        </div>
+                        <h2 class="serif" style="font-size: 1.85rem; line-height: 1.2; margin-bottom: 4px;">
+                            Más de <span class="gold-text">70 razas</span> en el mundo.
+                        </h2>
+                        <p style="font-size: 0.78rem; color: #525252; font-style: italic; margin-bottom: 14px;">
+                            Над 70 породи котки в света.
+                        </p>
+                        <p class="subtitle" style="font-size: 0.85rem; margin-bottom: 18px;">
+                            TICA reconoce 73 razas, FIFe reconoce 48. Van desde el Maine Coon (12 kg) hasta el Singapura (2,5 kg). Hay desde el Sphynx sin pelo hasta el Persa de pelaje luxoso.
+                        </p>
+                        <p class="bg-text" style="font-size: 0.8rem; margin-bottom: 18px;">
+                            TICA признава 73 породи, FIFe — 48. Варират от Maine Coon (12 кг) до Singapura (2,5 кг). От безкосмения Sphynx до Persa с луксозна козина.
+                        </p>
+                        <div class="breed-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                            <div class="breed-chip">
+                                <div style="font-size: 0.75rem; font-weight: 600; color: var(--gold); margin-bottom: 2px;">Maine Coon</div>
+                                <div style="font-size: 0.65rem; color: #525252;">Hasta 12 kg · Pelaje largo</div>
+                            </div>
+                            <div class="breed-chip">
+                                <div style="font-size: 0.75rem; font-weight: 600; color: var(--gold); margin-bottom: 2px;">Singapura</div>
+                                <div style="font-size: 0.65rem; color: #525252;">Hasta 2.5 kg · La más pequeña</div>
+                            </div>
+                            <div class="breed-chip">
+                                <div style="font-size: 0.75rem; font-weight: 600; color: var(--gold); margin-bottom: 2px;">Sphynx</div>
+                                <div style="font-size: 0.65rem; color: #525252;">Sin pelo · Temperamento cálido</div>
+                            </div>
+                            <div class="breed-chip">
+                                <div style="font-size: 0.75rem; font-weight: 600; color: var(--gold); margin-bottom: 2px;">Siamés</div>
+                                <div style="font-size: 0.65rem; color: #525252;">Muy vocal · Elegante</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="order: 1; position: relative;" class="order-flip">
+                        <img src="https://picsum.photos/seed/multiple-cat-breeds/600/480.jpg" alt="Razas" class="slide-img" style="width: 100%; height: 360px;">
+                        <div class="icon-badge right">
+                            <span class="iconify" data-icon="lucide:layers" data-width="18" style="color: var(--gold);"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== SLIDE 6: PURRING + SUMMARY ===== -->
+        <div class="slide bg-subtle" data-slide="5" style="box-shadow: inset 0 0 100px rgba(212,175,55,0.03);">
+            <div class="deco-line" style="bottom: 20%; left: 12%;"></div>
+            <div class="deco-line" style="bottom: 20%; right: 12%;"></div>
+            <div class="particle" style="top: 25%; left: 15%; animation-delay: 1s;"></div>
+
+            <div class="slide-inner" style="max-width: 1000px;">
+                <!-- Top: Purring fact -->
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 14px;">
+                    <span class="label" style="background: rgba(212,175,55,0.1); padding: 4px 12px; border-radius: 3px;">Dato 05</span>
+                    <span style="font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--golddim);">★ Favorito</span>
+                    <div style="flex: 1; height: 1px; background: var(--border);"></div>
+                </div>
+
+                <div class="fact-grid" style="margin-bottom: 32px; gap: 28px;">
+                    <div>
+                        <h2 class="serif" style="font-size: 1.75rem; line-height: 1.2; margin-bottom: 4px;">
+                            El ronroneo tiene efecto <span class="gold-text">calmante</span>.
+                        </h2>
+                        <p style="font-size: 0.78rem; color: #525252; font-style: italic; margin-bottom: 12px;">
+                            Мъркането има успокояващ ефект.
+                        </p>
+                        <p class="subtitle" style="font-size: 0.82rem; margin-bottom: 8px;">
+                            A 25–150 Hz, esta frecuencia promueve curación de huesos, reduce dolor y estrés. Ronronean al inhalar y exhalar — único en el reino animal. También lo hacen cuando están enfermos, lo que sugiere auto-curación.
+                        </p>
+                        <p class="bg-text" style="font-size: 0.78rem;">
+                            На 25–150 Hz, тази честота насърчава заздравяване на кости, намалява болка и стрес. Мъркат при вдишване и издишване — уникално в животинското царство. Мъркат и quando са болни, което предполага самоизлекуване.
+                        </p>
+                    </div>
+                    <div style="display: flex; flex-direction: column; justify-content: center; gap: 14px;">
+                        <div class="fact-card" style="padding: 12px 16px;">
+                            <div style="font-size: 0.65rem; color: #525252; margin-bottom: 6px;">Frecuencia del ronroneo / Честота на мъркането</div>
+                            <div class="purr-wave">
+                                <div class="purr-bar" style="height: 30%;"></div>
+                                <div class="purr-bar" style="height: 55%; animation-delay: 0.1s;"></div>
+                                <div class="purr-bar" style="height: 85%; animation-delay: 0.05s;"></div>
+                                <div class="purr-bar" style="height: 100%; animation-delay: 0.15s;"></div>
+                                <div class="purr-bar" style="height: 70%; animation-delay: 0.08s;"></div>
+                                <div class="purr-bar" style="height: 90%; animation-delay: 0.12s;"></div>
+                                <div class="purr-bar" style="height: 50%; animation-delay: 0.03s;"></div>
+                                <div class="purr-bar" style="height: 80%; animation-delay: 0.18s;"></div>
+                                <div class="purr-bar" style="height: 65%; animation-delay: 0.07s;"></div>
+                                <div class="purr-bar" style="height: 95%; animation-delay: 0.14s;"></div>
+                                <div class="purr-bar" style="height: 40%; animation-delay: 0.02s;"></div>
+                                <div class="purr-bar" style="height: 75%; animation-delay: 0.09s;"></div>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; font-size: 0.58rem; color: #404040; margin-top: 4px;">
+                                <span>25 Hz</span><span style="color: rgba(212,175,55,0.5);">25–150 Hz</span><span>150 Hz</span>
+                            </div>
+                        </div>
+                        <img src="https://picsum.photos/seed/cat-purring-relax/400/160.jpg" alt="Gato ronroneando" class="slide-img" style="width: 100%; height: 130px;">
+                    </div>
+                </div>
+
+                <!-- Divider -->
+                <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 24px;">
+                    <div style="flex: 1; height: 1px; background: var(--border);"></div>
+                    <span style="font-size: 1.4rem;">🐱</span>
+                    <div style="flex: 1; height: 1px; background: var(--border);"></div>
+                </div>
+
+                <!-- Summary row -->
+                <div class="summary-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 24px;">
+                    <div class="fact-card" style="padding: 20px 16px; text-align: center;">
+                        <div style="width: 40px; height: 40px; border-radius: 50%; background: rgba(212,175,55,0.1); border: 1px solid rgba(212,175,55,0.2); display: flex; align-items: center; justify-content: center; margin: 0 auto 10px;">
+                            <span class="iconify" data-icon="lucide:brain" data-width="18" style="color: var(--gold);"></span>
+                        </div>
+                        <h4 class="serif" style="font-size: 0.9rem; margin-bottom: 4px;">Biología</h4>
+                        <p class="bg-text" style="font-size: 0.68rem; line-height: 1.5;">Corazón rápido, orejas móviles, sueño de cazador.</p>
+                        <p style="font-size: 0.62rem; color: #404040; line-height: 1.4; margin-top: 2px;">Бързо сърце, подвижни уши, ловен сън.</p>
+                    </div>
+                    <div class="fact-card" style="padding: 20px 16px; text-align: center;">
+                        <div style="width: 40px; height: 40px; border-radius: 50%; background: rgba(212,175,55,0.1); border: 1px solid rgba(212,175,55,0.2); display: flex; align-items: center; justify-content: center; margin: 0 auto 10px;">
+                            <span class="iconify" data-icon="lucide:heart-handshake" data-width="18" style="color: var(--gold);"></span>
+                        </div>
+                        <h4 class="serif" style="font-size: 0.9rem; margin-bottom: 4px;">Conexión</h4>
+                        <p class="bg-text" style="font-size: 0.68rem; line-height: 1.5;">Ronroneo con efectos terapéuticos comprobados.</p>
+                        <p style="font-size: 0.62rem; color: #404040; line-height: 1.4; margin-top: 2px;">Мъркане с доказани терапевтични ефекти.</p>
+                    </div>
+                    <div class="fact-card" style="padding: 20px 16px; text-align: center;">
+                        <div style="width: 40px; height: 40px; border-radius: 50%; background: rgba(212,175,55,0.1); border: 1px solid rgba(212,175,55,0.2); display: flex; align-items: center; justify-content: center; margin: 0 auto 10px;">
+                            <span class="iconify" data-icon="lucide:sparkles" data-width="18" style="color: var(--gold);"></span>
+                        </div>
+                        <h4 class="serif" style="font-size: 0.9rem; margin-bottom: 4px;">Diversidad</h4>
+                        <p class="bg-text" style="font-size: 0.68rem; line-height: 1.5;">70+ razas con tamaños y personalidades únicas.</p>
+                        <p style="font-size: 0.62rem; color: #404040; line-height: 1.4; margin-top: 2px;">70+ породи с уникални размери и характери.</p>
+                    </div>
+                </div>
+
+                <!-- Closing quote -->
+                <div style="text-align: center;">
+                    <p class="serif" style="font-size: 1.15rem; font-style: italic; color: #a3a3a3;">
+                        «En tiempos de dificultad, siempre es mejor acariciar a un gato.»
+                    </p>
+                    <p style="font-size: 0.68rem; color: #404040; font-style: italic; margin-top: 4px;">
+                        «В трудни времена винаги е по-добре да погалиш котка.»
+                    </p>
+                    <p style="font-size: 0.65rem; color: #333; margin-top: 16px;">
+                        Contenido bilingüe español / български · Basado en «gatos_es_bg.pptx»
+                    </p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Navigation -->
+    <div class="nav-controls">
+        <button class="nav-btn" id="prevBtn" disabled>
+            <span class="iconify" data-icon="lucide:chevron-left" data-width="16"></span>
+        </button>
+        <div class="slide-dots" id="slideDots"></div>
+        <span class="slide-counter" id="slideCounter">1 / 6</span>
+        <button class="nav-btn" id="nextBtn">
+            <span class="iconify" data-icon="lucide:chevron-right" data-width="16"></span>
+        </button>
+    </div>
+
+    <script>
+        const slides = document.querySelectorAll('.slide');
+        const totalSlides = slides.length;
+        let currentSlide = 0;
+        let isAnimating = false;
+
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const dotsContainer = document.getElementById('slideDots');
+        const counter = document.getElementById('slideCounter');
+        const progressBar = document.getElementById('progressBar');
+
+        for (let i = 0; i < totalSlides; i++) {
+            const dot = document.createElement('div');
+            dot.className = 'dot' + (i === 0 ? ' active' : '');
+            dot.addEventListener('click', () => goToSlide(i));
+            dotsContainer.appendChild(dot);
+        }
+
+        function updateUI() {
+            counter.textContent = `${currentSlide + 1} / ${totalSlides}`;
+            progressBar.style.width = `${((currentSlide + 1) / totalSlides) * 100}%`;
+            prevBtn.disabled = currentSlide === 0;
+            nextBtn.disabled = currentSlide === totalSlides - 1;
+            document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === currentSlide));
+        }
+
+        function goToSlide(index) {
+            if (index === currentSlide || isAnimating || index < 0 || index >= totalSlides) return;
+            isAnimating = true;
+            const direction = index > currentSlide ? 1 : -1;
+            const current = slides[currentSlide];
+            const next = slides[index];
+            current.classList.remove('active');
+            current.style.transform = direction > 0 ? 'translateX(-60px)' : 'translateX(60px)';
+            current.style.opacity = '0';
+            next.style.transform = direction > 0 ? 'translateX(60px)' : 'translateX(-60px)';
+            next.style.opacity = '0';
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    next.classList.add('active');
+                    next.style.transform = 'translateX(0)';
+                    next.style.opacity = '1';
+                });
+            });
+            currentSlide = index;
+            updateUI();
+            setTimeout(() => {
+                current.classList.remove('exit-left');
+                current.style.transform = '';
+                current.style.opacity = '';
+                isAnimating = false;
+            }, 650);
+        }
+
+        prevBtn.addEventListener('click', () => goToSlide(currentSlide - 1));
+        nextBtn.addEventListener('click', () => goToSlide(currentSlide + 1));
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); goToSlide(currentSlide + 1); }
+            if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); goToSlide(currentSlide - 1); }
+        });
+
+        let touchStartX = 0;
+        document.addEventListener('touchstart', (e) => { touchStartX = e.changedTouches[0].screenX; });
+        document.addEventListener('touchend', (e) => {
+            const diff = touchStartX - e.changedTouches[0].screenX;
+            if (Math.abs(diff) > 50) diff > 0 ? goToSlide(currentSlide + 1) : goToSlide(currentSlide - 1);
+        });
+
+        updateUI();
+    </script>
+</body>
+</html>
